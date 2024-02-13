@@ -1,15 +1,8 @@
 import os
-from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QFileDialog
-from aqt import gui_hooks, qconnect
-from aqt import mw
 from aqt.sound import AVPlayer, play, clearAudioQueue
-from aqt.webview import AnkiWebView, AnkiWebViewKind
-import json
 from aqt import mw
-from aqt import gui_hooks, appVersion
+from aqt import gui_hooks
 import ctypes
-from aqt.reviewer import ReviewerBottomBar
 from threading import Timer
 
 streak = 0
@@ -28,11 +21,18 @@ class XINPUT_VIBRATION(ctypes.Structure):
 
 
 if os.name == "nt":  # windows
-    xinput = ctypes.windll.xinput1_1  # Load Xinput.dll
-    # Set up function argument types and return type
-    XInputSetState = xinput.XInputSetState
-    XInputSetState.argtypes = [ctypes.c_uint, ctypes.POINTER(XINPUT_VIBRATION)]
-    XInputSetState.restype = ctypes.c_uint
+    try:
+        xinput = ctypes.windll.xinput1_1  # Load Xinput.dll
+        # Set up function argument types and return type
+        XInputSetState = xinput.XInputSetState
+        XInputSetState.argtypes = [ctypes.c_uint, ctypes.POINTER(XINPUT_VIBRATION)]
+        XInputSetState.restype = ctypes.c_uint
+        rumble_enabled = True
+    except FileNotFoundError:
+        rumble_enabled = False
+
+else:
+    rumble_enabled = False
 
 
 def set_vibration(controller, left_motor, right_motor):
@@ -59,7 +59,7 @@ AVPlayer.play_tags = _play_tags
 
 def rumble(duration, intensity):
     """duration in seconds, intensity in 0-1"""
-    if os.name != "nt":  # windows
+    if not rumble_enabled:  # windows
         return
     set_vibration(0, intensity, intensity)
 
