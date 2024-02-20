@@ -10,6 +10,11 @@ effect_queue = 0
 addon_path = os.path.dirname(__file__)
 user_files = os.path.join(addon_path, "user_files")
 config = mw.addonManager.getConfig(__name__)
+is_rumble = config["rumble"]
+is_popups = config["popups"]
+is_buttons = config["buttons"]
+is_audio = config["audio"]
+# TODO: how to update these variables when the user changes config settings
 audio_wrong = os.path.join(user_files, "wrong.mp3")
 audio_correct = os.path.join(user_files, "correct.mp3")
 
@@ -33,6 +38,8 @@ if os.name == "nt":  # windows
 
 else:
     rumble_enabled = False
+if is_rumble == 0:
+    rumble_enabled = False
 
 
 def set_vibration(controller, left_motor, right_motor):
@@ -41,6 +48,9 @@ def set_vibration(controller, left_motor, right_motor):
 
 
 def play_sound(sound):
+    global is_audio
+    if not is_audio:
+        return
     clearAudioQueue()
     mw.progress.single_shot(
         1, lambda: play(sound), False
@@ -92,7 +102,7 @@ def prepare(html, card, context):
 @import url(https://db.onlinewebfonts.com/c/14936bb7a4b6575fd2eee80a3ab52cc2?family=Feather+Bold); 
 
 .popup {{
-  font-family: "Feather Bold", "Varela Round";
+  font-family: "Feather Bold", "Varela Round" !important;
   padding: 20px 40px 20px 40px;
   width: 150px;
   border-radius: 16px;
@@ -164,19 +174,57 @@ gui_hooks.card_will_show.append(prepare)
 
 
 def on_reviewer_did_answer_card(reviewer, card, ease):
-    global streak, effect_queue
+    global streak, effect_queue, is_popups
     if ease != 1:  # if card not rated 'again'
         streak += 1
-        rumble(0.350, 0.2)
-        play_sound(audio_correct)
+        print(f"current streak of {streak} cards!")
     else:
         streak = 0
+        print("streak lost!")
+
+
+def on_review_haptics(reviewer, card, ease):
+    if ease != 1:  # if card not rated 'again'
+        rumble(0.350, 0.2)
+    else:
         rumble(0.500, 0.6)
 
-        print("streak lost!")
+
+def on_review_audio(reviewer, card, ease):
+    if ease != 1:  # if card not rated 'again'
+        play_sound(audio_correct)
+    else:
         play_sound(audio_wrong)
-    effect_queue = ease
-    print(f"current streak of {streak} cards!")
 
 
-gui_hooks.reviewer_did_answer_card.append(on_reviewer_did_answer_card)
+def on_review_visuals(reviewer, card, ease):
+    global effect_queue
+    if is_popups:
+        effect_queue = ease
+
+
+def reset_hooks():
+    global config, is_rumble, is_popups, is_buttons, is_audio
+    config = mw.addonManager.getConfig(__name__)
+    is_rumble = config["rumble"]
+    is_popups = config["popups"]
+    is_buttons = config["buttons"]
+    is_audio = config["audio"]
+
+    gui_hooks.reviewer_did_answer_card.remove(on_review_haptics)
+    if is_rumble:
+        gui_hooks.reviewer_did_answer_card.append(on_review_haptics)
+
+    gui_hooks.reviewer_did_answer_card.remove(on_review_visuals)
+    if is_popups:
+        gui_hooks.reviewer_did_answer_card.append(on_review_visuals)
+
+    gui_hooks.reviewer_did_answer_card.remove(on_review_audio)
+    if is_audio:
+        gui_hooks.reviewer_did_answer_card.append(on_review_audio)
+
+    gui_hooks.reviewer_did_answer_card.append(on_reviewer_did_answer_card)
+    print("reset!")
+
+
+reset_hooks()

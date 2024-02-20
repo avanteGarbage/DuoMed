@@ -92,5 +92,11 @@ def on_theme_did_change():
     mw.bottomWeb.eval("document.querySelector('#styles').textContent = %s;" % json.dumps(bottom_bar_styles()))
 
 
-gui_hooks.webview_will_set_content.append(on_webview_will_set_content)
-gui_hooks.theme_did_change.append(on_theme_did_change)
+def enable_bottom_buttons():
+    gui_hooks.webview_will_set_content.append(on_webview_will_set_content)
+    gui_hooks.theme_did_change.append(on_theme_did_change)
+
+
+def disable_bottom_buttons():
+    gui_hooks.webview_will_set_content.remove(on_webview_will_set_content)
+    gui_hooks.theme_did_change.remove(on_theme_did_change)
