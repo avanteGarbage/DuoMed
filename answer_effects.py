@@ -224,7 +224,6 @@ def reset_hooks():
         gui_hooks.reviewer_did_answer_card.append(on_review_audio)
 
     gui_hooks.reviewer_did_answer_card.append(on_reviewer_did_answer_card)
-    print("reset!")
 
 
 reset_hooks()

@@ -1,5 +1,6 @@
 import aqt
 from aqt.qt import *
+from aqt.qt.qt6 import *
 from aqt.utils import showInfo
 
 from .answer_effects import reset_hooks
@@ -53,7 +54,7 @@ class Ui_Dialog(object):
 
         # BOTTOMBAR BUTTONS
         self.label_buttons = aqt.QLabel(Dialog)
-        self.label_buttons.setText("Enable button")
+        self.label_buttons.setText("Enable button styling")
         self.masterGridLayout.addWidget(self.label_buttons, 3, 0)
 
         self.check_buttons = aqt.QCheckBox(Dialog)
@@ -83,11 +84,10 @@ class Ui_Dialog(object):
         Dialog.close()
 
 
-
 class MyUIDialog(QDialog):
     def __init__(self, parent=None):
         self.parent = parent
-        QDialog.__init__(self, parent, aqt.Qt.Window)
+        QDialog.__init__(self, parent, aqt.Qt.WindowType.Window)
         self.dialog = Ui_Dialog()
         self.dialog.setupUi(self)
 
