@@ -1,8 +1,5 @@
 import os
-
-import aqt.sound
-# from aqt.sound import AVPlayer, play, clearAudioQueue
-from aqt.sound import av_player
+from aqt.sound import AVPlayer, play, clearAudioQueue
 from aqt import mw
 from aqt import gui_hooks
 import ctypes
@@ -54,13 +51,10 @@ def play_sound(sound_path):
     global is_audio
     if not is_audio:
         return
-    # clearAudioQueue()
-    av_player.stop_and_clear_queue()
-    av_player.play_file(sound_path)
-
-    # mw.progress.single_shot(
-    #     1, lambda: play(sound), False
-    # )
+    clearAudioQueue()
+    mw.progress.single_shot(
+        1, lambda: play(sound_path), False
+    )
 
 
 def _play_tags(self, tags):
@@ -70,7 +64,7 @@ def _play_tags(self, tags):
     self._play_next_if_idle()
 
 
-# sound.AVPlayer.play_tags = _play_tags
+AVPlayer.play_tags = _play_tags
 
 
 def rumble(duration, intensity):
@@ -81,7 +75,6 @@ def rumble(duration, intensity):
 
     def unfreeze():
         set_vibration(0, 0, 0)
-
     t = Timer(duration, unfreeze)
     t.start()
 
@@ -197,15 +190,11 @@ def on_review_haptics(reviewer, card, ease):
         rumble(0.500, 0.6)
 
 
-def on_review_audio(result, reviewer, card):
-    proceed, ease = result
-
-    av_player.stop_and_clear_queue()
-
-    path = audio_correct if ease != 1 else audio_wrong
-    av_player.play_file(path)
-
-    return result
+def on_review_audio(reviewer, card, ease):
+    if ease != 1:  # if card not rated 'again'
+        play_sound(audio_correct)
+    else:
+        play_sound(audio_wrong)
 
 
 def on_review_visuals(reviewer, card, ease):
@@ -230,9 +219,10 @@ def reset_hooks():
     if is_popups:
         gui_hooks.reviewer_did_answer_card.append(on_review_visuals)
 
-    gui_hooks.reviewer_will_answer_card.remove(on_review_audio)
+    # Consider adding to the  "will_answer" hook to make sure we preempt the next card
+    gui_hooks.reviewer_did_answer_card.remove(on_review_audio)
     if is_audio:
-        gui_hooks.reviewer_will_answer_card.append(on_review_audio)
+        gui_hooks.reviewer_did_answer_card.append(on_review_audio)
 
     gui_hooks.reviewer_did_answer_card.append(on_reviewer_did_answer_card)
 
