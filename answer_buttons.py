@@ -27,8 +27,12 @@ def bottom_bar_styles():
     }
     
     .nobold {
-    color: white;
+    color: #2e2d2d !important;
     }
+
+    body.nightMode .nobold {
+        color: white !important;
+    }  
     
     #defease {
         color: #2e2d2d !important;
