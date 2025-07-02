@@ -1,6 +1,5 @@
 import aqt
 from aqt.qt import *
-from aqt.qt.qt6 import *
 from aqt.utils import showInfo
 
 from .answer_effects import reset_hooks
@@ -87,7 +86,7 @@ class Ui_Dialog(object):
 class MyUIDialog(QDialog):
     def __init__(self, parent=None):
         self.parent = parent
-        QDialog.__init__(self, parent, aqt.Qt.WindowType.Window)
+        QDialog.__init__(self, parent)
         self.dialog = Ui_Dialog()
         self.dialog.setupUi(self)
 
